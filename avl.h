@@ -14,28 +14,25 @@ class AVL
         Info i;
 
         Node* left, *right;
-        char balance;
+        int height;
 
-        Node() {left = 0; right = 0; balance = 0;};
-        Node(const Key& k_, const Info& i_) {balance = 0; left = 0; right = 0; k = k_; i = i_;};
+        Node() {left = 0; right = 0; height = 0;};
+        Node(const Key& k_, const Info& i_) {height = 0; left = 0; right = 0; k = k_; i = i_;};
     };
 
     Node* root;
     
-    void rotateL(Node*);
-    void rotateR(Node*);
+    Node* rotateL(Node*);
+    Node* rotateR(Node*);
     void rebalance(Node*);
 
-
+    void updateHeight(Node* s);
     void printNode(const Node*) const;
     
     void insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i, Node* s, Node* prev);
-    void printRECURSION(Node*);
+    void printRECURSION(Node*, int h);
 public:
-
-    AVL();
-    ~AVL();
-    AVL(const AVL&);
+    AVL(){root = 0;}
 
     void insert(const Key&, const Info&);
 

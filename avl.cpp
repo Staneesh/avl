@@ -1,8 +1,18 @@
 #include "avl.h"
 
+template<typename Key, typename Info>
+void AVL<Key, Info>::updateHeight(AVL<Key, Info>::Node* s)
+{
+    int LH = -1;
+    int RH = -1;
+    if (s->left) LH = s->left->height;
+    if (s->right) LH = s->right->height;
+    
+    s->height = max(LH, RH) + 1;
+}
 
 template<typename Key, typename Info>
-void AVL<Key, Info>::rotateL(AVL<Key, Info>::Node* s)
+typename AVL<Key, Info>::Node* AVL<Key, Info>::rotateL(AVL<Key, Info>::Node* s)
 {
     auto z = s->right;
 
@@ -11,22 +21,15 @@ void AVL<Key, Info>::rotateL(AVL<Key, Info>::Node* s)
     s->right = t23;
     z->left = s;
 
+    updateHeight(s);
+    updateHeight(z);
 
-    if (z->balance == 0)
-    {
-        s->balance = 1;
-        z->balance = -1;
-    }
-    else
-    {
-        s->balance = 0;
-        z->balance = 0;
-    }
+    return z;
 }
 
 
 template<typename Key, typename Info>
-void AVL<Key, Info>::rotateR(AVL<Key, Info>::Node* s)
+typename AVL<Key, Info>::Node* AVL<Key, Info>::rotateR(AVL<Key, Info>::Node* s)
 {
     auto z = s->left;
 
@@ -35,17 +38,10 @@ void AVL<Key, Info>::rotateR(AVL<Key, Info>::Node* s)
     s->left = t23;
     z->right = s;
 
+    updateHeight(s);
+    updateHeight(z);
 
-    if (z->balance == 0)
-    {
-        s->balance = -1;
-        z->balance = 1;
-    }
-    else
-    {
-        s->balance = 0;
-        z->balance = 0;
-    }
+    return z;
 }
 
 int abs(int a)
@@ -72,8 +68,9 @@ void AVL<Key, Info>::rebalance(Node* s)
 
 template<typename Key, typename Info>
 void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i,
-                            Node* s, Node* prev)
+                                     Node* s, Node* prev)
 {
+    //cout<<"inserting("<<k<<","<<i<<")"<<endl;;
     if (s)
     {
         int d = k - s->k;
@@ -97,59 +94,89 @@ void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const 
         }
 
 
-        int increased = 0;
         if (lastTimeGoneLeft)
         {
             prev->left = new Node(k, i);
-            increased = -1;
+            if (prev->right) ++prev->height;
+            return;
         }
         else
         {
             prev->right = new Node(k, i);
-            increased = 1;
+            if (prev->left) ++prev->height;
+            return;
         }
 
-        prev->balance += increased;
+
     }
 
-
-    //NOTE: rebalancing
-    auto l = prev->left;
-    auto r = prev->right;
-    auto curB = prev->balance;
+    int LH = -1;
+    if (s->left) LH = s->left->height;
+    int RH = -1;
+    if (s->right) RH = s->right->height;
     
-    if (curB > 1 && k < l->k)  
-        return rotateR(prev);  
-  
-    if (curB < -1 && k > r->k)  
-        return rotateR(prev);  
-  
-    if (curB > 1 && k > l->k)  
+    s->height = max(LH, RH) + 1;
+
+    int curB = RH - LH; 
+
+    int leftKey = 100000, rightKey = leftKey;
+    if (s->left) leftKey = s->left->k;
+    if (s->right) rightKey = s->right->k;
+    
+    
+#if 1
+    if (curB > 1 && k < leftKey)  
+    {
+        auto res = rotateL(prev);
+        if (prev == root) root = res;
+        
+    }
+    
+    if (curB < -1 && k > rightKey)  
+    {
+        auto res = rotateR(prev);  
+        if (prev == root) root = res;
+    }
+    if (curB > 1 && k > leftKey)  
     {  
-        rotateL(l);  
-        rotateR(prev);  
+        prev->left = rotateL(prev->left);  
+        auto res = rotateR(prev);  
+        if (prev == root) root = res;        
     }  
 
-    if (curB < -1 && k < r->k)  
+    if (curB < -1 && k < rightKey)  
     {  
-        rotateR(r);  
-        rotateL(prev);  
-    }  
+        prev->right = rotateR(prev->right);  
+        auto res = rotateL(prev);  
+        if (prev == root) root = res;
+    }
+#endif    
 }
 
 template<typename Key, typename Info>
 void AVL<Key, Info>::printNode(const Node* n) const
 {
-    cout<<n->k<<endl;
+    cout<<n->k<<":"<<n->height;
 }
 
 template<typename Key, typename Info>
-void AVL<Key, Info>::printRECURSION(Node* n)
+void AVL<Key, Info>::printRECURSION(Node* n, int h)
 {
-    cout<<"GOING L:"<<endl;
-    printRECURSION(n ->left);
-    cout<<"GOING R:"<<endl;
-    printRECURSION(n ->right);
+    if (n->right)
+    {
+        printRECURSION(n->right, h + 1);
+    }
+    for (int i = 0; i < h; i++)
+    {
+        cout<<"-|-";
+    }
+    printNode(n);
+
+    cout<<endl;
+    if (n->left)
+    {
+        printRECURSION(n->left, h + 1);
+    }
 }
 
 
@@ -162,5 +189,8 @@ void AVL<Key, Info>::insert(const Key& k, const Info& i)
 template<typename Key, typename Info>
 void AVL<Key, Info>::print()
 {
-    printRECURSION(root);
+    if (root)
+    {
+        printRECURSION(root, 0);
+    }
 }
