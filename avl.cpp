@@ -120,7 +120,6 @@ template<typename Key, typename Info>
 void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i,
                                      Node* s, Node* prev)
 {
-    //cout<<"inserting("<<k<<","<<i<<")"<<endl;;
     if (s)
     {
         int d = k - s->k;
@@ -137,15 +136,11 @@ void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const 
     }
     else
     {
-
-        
         if (root == 0)
         {
             root = new Node(k, i);
             return;
         }
-
-
         if (lastTimeGoneLeft)
         {
             prev->left = new Node(k, i);
@@ -156,8 +151,6 @@ void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const 
             prev->right = new Node(k, i);
             return;
         }
-
-
     }
 
     updateHeight(s);
@@ -167,8 +160,6 @@ void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const 
     if (s->left) leftKey = s->left->k;
     if (s->right) rightKey = s->right->k;
 
-
-#if 1
     if (curB > 1 && k < leftKey)  
     {
         auto res = rotateL(prev);
@@ -194,7 +185,6 @@ void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const 
         auto res = rotateL(prev);  
         if (prev == root) root = res;
     }
-#endif    
 }
 
 template<typename Key, typename Info>
@@ -212,7 +202,7 @@ void AVL<Key, Info>::printRECURSION(Node* n, int h)
     }
     for (int i = 0; i < h; i++)
     {
-        cout<<"-|-";
+        cout<<" | ";
     }
     printNode(n);
 

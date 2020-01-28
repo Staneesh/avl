@@ -17,6 +17,7 @@ class AVL
         int height;
 
         Node() {left = 0; right = 0; height = 0;};
+        ~Node() {};
         Node(const Key& k_, const Info& i_) {height = 1; left = 0; right = 0; k = k_; i = i_;};
     };
 
@@ -24,8 +25,9 @@ class AVL
     
     Node* rotateL(Node*);
     Node* rotateR(Node*);
-
+    int balance(Node* s);
     void updateHeight(Node* s);
+
     void printNode(const Node*) const;
     
     void insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i, Node* s, Node* prev);
@@ -35,7 +37,7 @@ class AVL
     int heightOfSubtree(Node* s);
     bool findKeyRECURSIVE(Node* s, const Key& k);
     Node* minFromRECURSION(Node* s);
-    int balance(Node* s);
+
 
     
 public:
