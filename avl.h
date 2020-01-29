@@ -25,30 +25,31 @@ class AVL
     
     Node* rotateL(Node*);
     Node* rotateR(Node*);
-    int balance(Node* s);
     void updateHeight(Node* s);
+    int balance(const Node* s) const;
 
     void printNode(const Node*) const;
     
-    void insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i, Node* s, Node* prev);
+    Node* insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i, Node* s, Node* prev);
     void printRECURSION(Node*, int h);
-    void removeRECURSION(Node* s, Node* prev, bool, const Key& k);
+    Node* removeRECURSION(Node* s, Node* prev, bool, const Key& k);
     void clearRECURSION(Node* s);
-    int heightOfSubtree(Node* s);
+    int heightOfSubtree(const Node* s) const;
     bool findKeyRECURSIVE(Node* s, const Key& k);
     Node* minFromRECURSION(Node* s);
-
+    void updateRECURSION(Node* s, const Key&, const Info&);
 
     
 public:
     AVL(){root = 0;}
     ~AVL();
-    
+
+    void update(const Key&, const Info&);
     void insert(const Key&, const Info&);
     void remove(const Key&);
     void print();
     void clear();
-    bool findKey(const Key& k);
+    bool checkKey(const Key& k);
 };
 
 #include "avl.cpp"

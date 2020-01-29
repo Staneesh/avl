@@ -12,9 +12,31 @@ void AVL<Key, Info>::clearRECURSION(AVL<Key, Info>::Node* s)
 }
 
 template<typename Key, typename Info>
+void AVL<Key, Info>::updateRECURSION(AVL<Key, Info>::Node* s, const Key& k, const Info& i)
+{
+    if (!s) return;
+
+    if (s->k == k)
+    {
+        s->i = i;
+        return;
+    }
+    
+    if (s->left) clearRECURSION(s->left);
+    if (s->right) clearRECURSION(s->right);
+
+}
+
+template<typename Key, typename Info>
 void AVL<Key, Info>::clear()
 {
     clearRECURSION(root);
+}
+
+template<typename Key, typename Info>
+void AVL<Key, Info>::update(const Key& k, const Info& i)
+{
+    updateRECURSION(root, k, i);
 }
 
 
@@ -52,13 +74,13 @@ bool AVL<Key, Info>::findKeyRECURSIVE(Node* n, const Key& k)
 }
 
 template<typename Key, typename Info>
-bool AVL<Key, Info>::findKey(const Key& k)
+bool AVL<Key, Info>::checkKey(const Key& k)
 {
     return findKeyRECURSIVE(root, k);
 }
     
 template<typename Key, typename Info>
-int AVL<Key, Info>::balance(AVL<Key, Info>::Node* s)
+int AVL<Key, Info>::balance(const AVL<Key, Info>::Node* s) const
 {
     if (!s) return 0;
     
@@ -72,7 +94,7 @@ int AVL<Key, Info>::balance(AVL<Key, Info>::Node* s)
 
 
 template<typename Key, typename Info>
-int AVL<Key, Info>::heightOfSubtree(AVL<Key, Info>::Node* s)
+int AVL<Key, Info>::heightOfSubtree(const AVL<Key, Info>::Node* s) const 
 {
     if (s) return s->height;
     return 0;
@@ -84,10 +106,10 @@ typename AVL<Key, Info>::Node* AVL<Key, Info>::rotateL(AVL<Key, Info>::Node* s)
     auto z = s->right;
 
     auto t23 = z->left;
+z->left = s;
 
     s->right = t23;
-    z->left = s;
-
+    
     updateHeight(s);
     updateHeight(z);
 
@@ -117,80 +139,104 @@ int abs(int a)
 }
 
 template<typename Key, typename Info>
-void AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i,
+typename AVL<Key, Info>::Node* AVL<Key, Info>::insertRECURSION(bool lastTimeGoneLeft, const Key& k, const Info& i,
                                      Node* s, Node* prev)
 {
     if (s)
     {
         int d = k - s->k;
-        if (d == 0) return;
+        if (d == 0) return (s);
 
-        if (d > 0) //k > s->k
+        if (d < 0) //k > s->k
         {
-            insertRECURSION(false, k, i, s->right, s);
+            s->left = insertRECURSION(false, k, i, s->left, s);
         }
         else
         {
-            insertRECURSION(true, k, i, s->left, s);
+            s->right = insertRECURSION(true, k, i, s->right, s);
         }
     }
     else
     {
-        if (root == 0)
-        {
-            root = new Node(k, i);
-            return;
-        }
-        if (lastTimeGoneLeft)
-        {
-            prev->left = new Node(k, i);
-            return;
-        }
-        else
-        {
-            prev->right = new Node(k, i);
-            return;
-        }
+        return (new Node(k, i));
     }
 
     updateHeight(s);
-    int curB = balance(s); 
+    int curB = -balance(s); 
 
-    int leftKey = 100000, rightKey = leftKey;
+
+
+    
+    int leftKey = 100000, rightKey = -leftKey;
     if (s->left) leftKey = s->left->k;
     if (s->right) rightKey = s->right->k;
 
+    #define DEB 0
+#if DEB
+    int SPECJAL = 6;
+    if (k == SPECJAL)
+    {
+        cout<<"SPECJAL"<<endl;
+        cout<<"B:"<<curB<<endl;
+        cout<<"LK:"<<leftKey<<" RK:"<<rightKey<<" CURK:"<<s->k<<endl;
+        print();
+
+    }
+#endif
     if (curB > 1 && k < leftKey)  
     {
-        auto res = rotateL(prev);
-        if (prev == root) root = res;
-        
+#if DEB
+        if (k == SPECJAL)
+        {
+            cout<<"Entering 1"<<endl;
+        }
+#endif   
+        return rotateR(s);
     }
     
     if (curB < -1 && k > rightKey)  
     {
-        auto res = rotateR(prev);  
-        if (prev == root) root = res;
+#if DEB
+        if (k == SPECJAL)
+        {
+            cout<<"Entering 2"<<endl;
+        }
+
+#endif
+        return rotateL(s);
+        
     }
     if (curB > 1 && k > leftKey)  
-    {  
-        prev->left = rotateL(prev->left);  
-        auto res = rotateR(prev);  
-        if (prev == root) root = res;        
+    {
+#if DEB      
+        if (k == SPECJAL)
+        {
+            cout<<"Entering 3"<<endl;
+        }
+#endif   
+        s->left = rotateL(s->left);  
+        return rotateR(s);
     }  
 
     if (curB < -1 && k < rightKey)  
     {  
-        prev->right = rotateR(prev->right);  
-        auto res = rotateL(prev);  
-        if (prev == root) root = res;
+#if DEB
+        if (k == SPECJAL)
+        {
+            cout<<"Entering 4"<<endl;
+        }
+#endif   
+        s->right = rotateR(s->right);  
+        return rotateL(s);
     }
+
+    return s;
 }
 
 template<typename Key, typename Info>
 void AVL<Key, Info>::printNode(const Node* n) const
 {
-    cout<<n->k<<":"<<n->height;
+    cout<<n->k<<"(h:"<<n->height<<")";
 }
 
 template<typename Key, typename Info>
@@ -202,7 +248,7 @@ void AVL<Key, Info>::printRECURSION(Node* n, int h)
     }
     for (int i = 0; i < h; i++)
     {
-        cout<<" | ";
+        cout<<"  |  ";
     }
     printNode(n);
 
@@ -223,9 +269,11 @@ typename AVL<Key, Info>::Node* AVL<Key, Info>::minFromRECURSION(Node* s)
 
 
 template<typename Key, typename Info>
-void AVL<Key, Info>::removeRECURSION(Node* s, Node* prev, bool lastTimeWentLeft, const Key& k)
+typename AVL<Key, Info>::Node* AVL<Key, Info>::removeRECURSION(Node* s, Node* prev, bool lastTimeWentLeft, const Key& k)
 {
-    if (!s) return;
+    if (!s) return s;
+
+    int SPECJAL = 7;
 
     if (k > s->k)
     {
@@ -260,6 +308,7 @@ void AVL<Key, Info>::removeRECURSION(Node* s, Node* prev, bool lastTimeWentLeft,
     }
     else if (s->right == 0)
     {
+        
         s->k = s->left->k;
         s->i = s->left->i;
 
@@ -276,48 +325,54 @@ void AVL<Key, Info>::removeRECURSION(Node* s, Node* prev, bool lastTimeWentLeft,
         s->i = minn->i;
         removeRECURSION(s->right, s, 0, minn->k);
     }
-    
+        
     updateHeight(s);
 
     int b = balance(s);
 
-    if (b > 1)
+#if 0    
+    if (k == SPECJAL)
+    {
+        cout<<"IMHEREEE!!"<<s->k<<endl;
+        print();
+    }
+#endif
+
+    if (b < -1)
     {
         if (balance(s->left) >= 0)
         {
-            auto res = rotateR(s);
-            if (root == s) root = res;
+            return rotateR(s);
         }
         else
         {
             s->left = rotateL(root->left);
-            auto res = rotateR(s);
-            if (root == s) root = res;
+            return rotateR(s);
+            
         }
     }
 
-    if (b < -1)
+    if (b > 1)
     {
-        if (balance(s->right) <= 0)
+        if (balance(s->right) <=  0)
         {
-            auto res = rotateL(s);
-            if (root == s) root = res;
+            return rotateL(s);
         }
         else
         {
             s->right = rotateR(s->right);
-            auto res = rotateL(s);
-            if (root == s) root = res;
+            return rotateL(s);
         }
     }
 
+    return s;
 
 }
 
 template<typename Key, typename Info>
 void AVL<Key, Info>::insert(const Key& k, const Info& i)
 {
-    insertRECURSION(false, k, i, root, root);
+root =     insertRECURSION(false, k, i, root, root);
 }
 
 template<typename Key, typename Info>
@@ -333,5 +388,5 @@ void AVL<Key, Info>::print()
 template<typename Key, typename Info>
 void AVL<Key, Info>::remove(const Key& k)
 {
-    removeRECURSION(root, root, 0, k);
+    root = removeRECURSION(root, root, 0, k);
 }
